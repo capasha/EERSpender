@@ -17,8 +17,6 @@ namespace EESpender2
         static List<UserIntance> UserInstances = new List<UserIntance>();
         static void Main(string[] args)
         {
-            var gameid = "everybody-edits-v226-5ugofmmni06qbc11k5tqq";
-            var lobbyver = 237;
 
             EasyTimer.SetTimeout(new Action(() => {
                 foreach (var instance in UserInstances) {
@@ -45,7 +43,7 @@ namespace EESpender2
                 Log(Severity.Error, "Missing a required account argument.", true);
 
             for (int i = 0; i < args.Length; i += 2)
-                UserInstances.Add(new UserIntance(args[i], args[i + 1],gameid,lobbyver));
+                UserInstances.Add(new UserIntance(args[i], args[i + 1]));
 
             while (UserInstances.All(x => !x.Completed))
                 Thread.Sleep(100);
@@ -71,8 +69,22 @@ namespace EESpender2
         public bool Completed = false;
         public string Username = "Unspecified";
 
-        public UserIntance(string email, string auth, string gameid, int lobbyver)
+        public UserIntance(string email, string auth)
         {
+            var gameid = "everybody-edits-v226-5ugofmmni06qbc11k5tqq";
+            var lobbyver = 237;
+            if (!File.Exists("game.json"))
+            {
+                Log(Severity.Error, "GameID and Lobby Version doesn't exists.");
+                Completed = true;
+                return;
+            }
+            else
+            {
+                dynamic format = JsonConvert.DeserializeObject(File.ReadAllText("game.json"));
+                gameid = format.ContainsKey("gameid") ? format["gameid"] : "everybody-edits-v226-5ugofmmni06qbc11k5tqq";
+                lobbyver = format.ContainsKey("lobbyver") ? Convert.ToInt32(format["lobbyver"]) : 237;
+            }
             try
             {
                 this.Client = PlayerIO.QuickConnect.SimpleConnect(gameid, email, auth, null);
