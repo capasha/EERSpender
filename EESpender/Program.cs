@@ -8,6 +8,7 @@ using System.Linq;
 using PlayerIOClient;
 using Newtonsoft.Json;
 using static EESpender2.Helpers;
+using Microsoft.SqlServer.Server;
 
 namespace EESpender2
 {
@@ -16,6 +17,9 @@ namespace EESpender2
         static List<UserIntance> UserInstances = new List<UserIntance>();
         static void Main(string[] args)
         {
+            var gameid = "everybody-edits-v226-5ugofmmni06qbc11k5tqq";
+            var lobbyver = 237;
+
             EasyTimer.SetTimeout(new Action(() => {
                 foreach (var instance in UserInstances) {
                     instance.LogOutput();
@@ -27,7 +31,6 @@ namespace EESpender2
 
             ServicePointManager.ServerCertificateValidationCallback += (o, certificate, chain, errors) => true;
             Process.GetCurrentProcess().PriorityClass = System.Diagnostics.ProcessPriorityClass.BelowNormal;
-
             if (File.Exists("accounts.dat")) {
                 if (args.Length > 0)
                     Log(Severity.Warning, "You must only either provide accounts as arguments or within 'accounts.dat', defaulting to 'accounts.dat'.");
@@ -42,7 +45,7 @@ namespace EESpender2
                 Log(Severity.Error, "Missing a required account argument.", true);
 
             for (int i = 0; i < args.Length; i += 2)
-                UserInstances.Add(new UserIntance(args[i], args[i + 1]));
+                UserInstances.Add(new UserIntance(args[i], args[i + 1],gameid,lobbyver));
 
             while (UserInstances.All(x => !x.Completed))
                 Thread.Sleep(100);
@@ -60,6 +63,7 @@ namespace EESpender2
     {
         public Client Client { get; set; }
         public Connection Lobby { get; set; }
+        
         public List<string> RequiredMessageTypes = new List<string>() { "getMySimplePlayerObject", "getLobbyProperties", "getShop" };
         public List<Message> ReceivedMessages = new List<Message>();
         public List<string> Output = new List<string>();
@@ -67,19 +71,21 @@ namespace EESpender2
         public bool Completed = false;
         public string Username = "Unspecified";
 
-        public UserIntance(string email, string auth)
+        public UserIntance(string email, string auth, string gameid, int lobbyver)
         {
-            try {
-                this.Client = PlayerIO.QuickConnect.SimpleConnect("everybody-edits-v226-5ugofmmni06qbc11k5tqq", email, auth,null);
+            try
+            {
+                this.Client = PlayerIO.QuickConnect.SimpleConnect(gameid, email, auth, null);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 Log(Severity.Error, $"Authentication failed. ({ex.Message})");
                 Completed = true;
 
                 return;
             }
 
-            this.Lobby = Client.Multiplayer.CreateJoinRoom(Client.ConnectUserId, $"Lobby237", true, null, null);
+            this.Lobby = Client.Multiplayer.CreateJoinRoom(Client.ConnectUserId, $"Lobby{lobbyver}", true, null, null);
             this.Lobby.OnMessage += (s, e) => ReceivedMessages.Add(e);
 
             Helpers.Log(Severity.Info, "EESpender Started.");
