@@ -12,12 +12,22 @@ You could also make a file named **accounts.dat** whith **email password** insid
 This can be done with Cron (Linux), or Task Scheduler (Windows).
 
 # Examples
-## crontab
+## crontab (Linux)
 ```shell
 0 */2 * * * cd /home/root/eespender/ && mono EESpender.exe "user@example.com" "password" 2>&1 & 
 ```
 
-## crontab (multiple accounts)
+## crontab (multiple accounts) (Linux)
 ```shell
 0 */2 * * * cd /home/root/eespender/ && mono EESpender.exe "user1@example.com" "password" "user2@example.com" "password2" 2>&1 & 
 ```
+
+## Windows test run from commandline
+```shell
+EESpender.exe "user@example.com" "password"
+```
+Or add **user@example.com password** inside accounts.dat and click on the binary.  
+
+## Windows Task Scheduler
+Please be careful with deleting tasks you have made. So you don't delete anything accidently.  
+[https://digicruncher.com/task-scheduler-in-windows-10/](https://digicruncher.com/task-scheduler-in-windows-10/)
